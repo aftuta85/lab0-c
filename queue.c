@@ -233,16 +233,54 @@ void q_sort(struct list_head *head, bool descend)
  * the right side of it */
 int q_ascend(struct list_head *head)
 {
-    // https://leetcode.com/problems/remove-nodes-from-linked-list/
-    return 0;
+    if (!head || list_empty(head))
+        return 0;
+
+    LIST_HEAD(descend_list);
+    element_t *curr_e = NULL, *last_e = NULL;
+    struct list_head *curr = NULL, *tmp = NULL;
+    list_for_each_safe (curr, tmp, head) {
+        curr_e = list_entry(curr, element_t, list);
+        while (q_size(&descend_list) > 0) {
+            last_e = list_last_entry(&descend_list, element_t, list);
+            if (strcmp(curr_e->value, last_e->value) < 0) {
+                list_del_init(&last_e->list);
+                free(last_e->value);
+                free(last_e);
+            } else
+                break;
+        }
+        list_move_tail(curr, &descend_list);
+    }
+    list_splice_init(&descend_list, head);
+    return q_size(head);
 }
 
 /* Remove every node which has a node with a strictly greater value anywhere to
  * the right side of it */
 int q_descend(struct list_head *head)
 {
-    // https://leetcode.com/problems/remove-nodes-from-linked-list/
-    return 0;
+    if (!head || list_empty(head))
+        return 0;
+
+    LIST_HEAD(descend_list);
+    element_t *curr_e = NULL, *last_e = NULL;
+    struct list_head *curr = NULL, *tmp = NULL;
+    list_for_each_safe (curr, tmp, head) {
+        curr_e = list_entry(curr, element_t, list);
+        while (q_size(&descend_list) > 0) {
+            last_e = list_last_entry(&descend_list, element_t, list);
+            if (strcmp(curr_e->value, last_e->value) > 0) {
+                list_del_init(&last_e->list);
+                free(last_e->value);
+                free(last_e);
+            } else
+                break;
+        }
+        list_move_tail(curr, &descend_list);
+    }
+    list_splice_init(&descend_list, head);
+    return q_size(head);
 }
 
 /* Merge all the queues into one sorted queue, which is in ascending/descending
