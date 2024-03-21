@@ -141,10 +141,51 @@ bool q_delete_mid(struct list_head *head)
     return true;
 }
 
+static void q_delete_dup_free_helper(struct list_head *del)
+{
+    if (!del)
+        return;
+
+    element_t *del_e = list_entry(del, element_t, list);
+    list_del_init(&del_e->list);
+    free(del_e->value);
+    free(del_e);
+}
+
 /* Delete all nodes that have duplicate string */
 bool q_delete_dup(struct list_head *head)
 {
-    // https://leetcode.com/problems/remove-duplicates-from-sorted-list-ii/
+    if (!head)
+        return false;
+
+    // Need to sort the list first
+    q_sort(head, 0);
+
+    struct list_head **indir = &head->next;
+    struct list_head *del = NULL;
+    element_t *e, *next_e;
+    while (*indir != head && (*indir)->next != head) {
+        e = list_entry(*indir, element_t, list);
+        next_e = list_entry((*indir)->next, element_t, list);
+        if (!strcmp(e->value, next_e->value)) {
+            while (*indir != head && (*indir)->next != head) {
+                e = list_entry(*indir, element_t, list);
+                next_e = list_entry((*indir)->next, element_t, list);
+                if (!strcmp(e->value, next_e->value)) {
+                    del = *indir;
+                    *indir = (*indir)->next;
+                    q_delete_dup_free_helper(del);
+                    del = *indir;
+                } else {
+                    *indir = (*indir)->next;
+                    break;
+                }
+            }
+            q_delete_dup_free_helper(del);
+            del = NULL;
+        } else
+            indir = &(*indir)->next;
+    }
     return true;
 }
 
