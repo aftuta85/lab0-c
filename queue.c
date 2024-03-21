@@ -163,7 +163,7 @@ bool q_delete_dup(struct list_head *head)
 
     struct list_head **indir = &head->next;
     struct list_head *del = NULL;
-    element_t *e, *next_e;
+    element_t *e = NULL, *next_e = NULL;
     while (*indir != head && (*indir)->next != head) {
         e = list_entry(*indir, element_t, list);
         next_e = list_entry((*indir)->next, element_t, list);
