@@ -74,6 +74,7 @@ static int fail_count = 0;
 static int string_length = MAXSTRING;
 
 static int descend = 0;
+static int sort_algo = 0;
 
 #define MIN_RANDSTR_LEN 5
 #define MAX_RANDSTR_LEN 10
@@ -85,6 +86,7 @@ typedef enum {
 } position_t;
 /* Forward declarations */
 static bool q_show(int vlevel);
+void timsort(void *priv, struct list_head *head, bool descend);
 
 static bool do_free(int argc, char *argv[])
 {
@@ -542,6 +544,11 @@ static bool do_size(int argc, char *argv[])
 
     int reps = 1;
     bool ok = true;
+    if (argc != 1 && argc != 2) {
+        report(1, "%s needs 0-1 arguments", argv[0]);
+        return false;
+    }
+
     if (argc == 2) {
         if (!get_int(argv[1], &reps))
             report(1, "Invalid number of calls to size '%s'", argv[2]);
@@ -594,9 +601,14 @@ bool do_sort(int argc, char *argv[])
         report(3, "Warning: Calling sort on single node");
     error_check();
 
+    int cmp_count = 0;
     set_noallocate_mode(true);
-    if (current && exception_setup(true))
-        q_sort(current->q, descend);
+    if (current && exception_setup(true)) {
+        if (sort_algo == 0)
+            q_sort(current->q, descend);
+        else
+            timsort(&cmp_count, current->q, descend);
+    }
     exception_cancel();
     set_noallocate_mode(false);
 
@@ -1057,6 +1069,9 @@ static void console_init()
               "Number of times allow queue operations to return false", NULL);
     add_param("descend", &descend,
               "Sort and merge queue in ascending/descending order", NULL);
+    add_param("sort", &sort_algo,
+              "Select sort algorithm. 0: Merge sort (default), 1: Timsort",
+              NULL);
 }
 
 /* Signal handlers */
